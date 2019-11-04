@@ -1,0 +1,29 @@
+#!/bin/bash
+clear || tput reset
+ACTION=${1:-"--help"}
+PLUGINS_DIR=$(pwd)/presto.plugins
+# If action is a colon means is global search
+if [[ "$ACTION" == ":" ]]; then
+    echo "global search"
+elif [[ "$ACTION" == "--plugins" ]];then
+    echo "Available Plugins"
+    for plugin in "$PLUGINS_DIR"/*
+    do
+        plugin=$(basename -- "$plugin")
+        plugin=${plugin%.*}
+        [[ "$plugin" == "default" ]] || echo " * "$plugin
+    done
+elif [[ "$ACTION" == "--help" ]];then
+    echo "--default options"
+elif [[ -f "$PLUGINS_DIR/$ACTION.sh" ]]; then
+    # Plugin found
+    args=("${@}")
+    # echo "${#args[@]}"
+    [ ! ${#args[@]} -gt 1 ] && args=() || args=("${args[@]:1}")
+    # printf "%s\n" "${args[@]}"
+    
+    # load plugin and pass list of args (from index=2)
+    bash "$PLUGINS_DIR/$ACTION.sh" "${args[@]}"
+else
+    echo "Bad syntax: maybe this plugin is not installed \"$PLUGINS_DIR/$ACTION.sh\""
+fi
